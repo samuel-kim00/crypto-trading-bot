@@ -1,0 +1,41 @@
+{
+  "self_learning_bot": {
+    "enabled": true,
+    "initial_balance": 9.77,
+    "learning_episodes": 2000,
+    "genetic_generations": 100,
+    "retrain_interval": 50,
+    "confidence_threshold": 0.65,
+    "ai_methods": [
+      "deep_q_network",
+      "genetic_algorithm",
+      "pattern_recognition",
+      "ensemble_voting"
+    ]
+  },
+  "training_symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "ADAUSDT"
+  ],
+  "model_settings": {
+    "save_interval": 50,
+    "backup_models": true,
+    "performance_tracking": true,
+    "auto_retrain": true,
+    "model_validation": true
+  },
+  "risk_management": {
+    "max_position_size": 0.20,
+    "stop_loss_pct": 0.025,
+    "take_profit_pct": 0.08,
+    "risk_per_trade": 0.025
+  },
+  "performance_targets": {
+    "min_win_rate": 0.60,
+    "min_profit_factor": 2.0,
+    "max_drawdown": 0.10,
+    "target_sharpe_ratio": 1.5
+  }
+} 

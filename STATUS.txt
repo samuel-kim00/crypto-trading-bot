@@ -1,0 +1,1 @@
+AI Trading Bot Ready! Dashboard: http://localhost:8081 | Monitor: python3 monitor.py

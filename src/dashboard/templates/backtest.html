@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtesting Dashboard - Trading Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .neutral { color: #6c757d; }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .trade-row:hover {
+            background-color: #f8f9fa;
+        }
+        .adaptive-mode {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .basic-mode {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .results-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .run-btn {
+            background: linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .run-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .debug-log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="bi bi-graph-up"></i> VLM Scalper</a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/">📊 Dashboard</a>
+                <a class="nav-link active" href="/backtest">📈 Backtesting</a>
+                <a class="nav-link" href="/ai-training">🤖 AI Training</a>
+            </div>
+            <div class="d-flex">
+                <span class="navbar-text">
+                    <i class="bi bi-cpu"></i> Strategy Testing Environment
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2">🚀 VLM Strategy Backtesting</h1>
+                    <div>
+                        <button id="runBacktest" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-play-circle"></i> Run New Backtest
+                        </button>
+                        <button id="downloadResults" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Download Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backtest Mode Selection -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🤖 Backtest Mode Selection</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label><strong>Select Backtest Mode:</strong></label>
+                            <select id="backtestMode" class="form-control" style="font-size: 16px; padding: 10px;">
+                                <option value="basic">📊 Basic VLM Strategy - Traditional technical analysis only</option>
+                                <option value="adaptive" selected>🧠 Adaptive (VLM + ML) - LIVE strategy + ML predictions</option>
+                                <option value="auto_discovery">🤖 Auto-Discovery - Let bot choose cryptocurrencies autonomously</option>
+                            </select>
+                            <div class="mt-3">
+                                <div id="modeDescription" class="alert alert-info">
+                                    <strong>🧠 Adaptive Mode (Recommended):</strong><br>
+                                    ✅ Uses your LIVE trading strategy<br>
+                                    ✅ Integrates ML predictions from Enhanced Predictor<br>
+                                    ✅ Automatically adapts when strategy changes<br>
+                                    ✅ Confidence-based position sizing
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backtest Configuration -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>📊 Backtest Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" value="2024-03-01">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" value="2024-04-01">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="initialBalance" class="form-label">Initial Balance ($)</label>
+                                <input type="number" class="form-control" id="initialBalance" value="10000">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="symbols" class="form-label">Trading Pairs</label>
+                                <input type="text" class="form-control" id="symbols" value="BTCUSDT" placeholder="Comma separated">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Discovery Parameters -->
+        <div id="autoDiscoveryParams" style="display: none;">
+            <h5>🤖 Autonomous Trading Parameters</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="maxPositions">Max Concurrent Positions:</label>
+                        <input type="number" id="maxPositions" class="form-control" value="5" min="1" max="10">
+                        <small class="form-text text-muted">Maximum number of cryptocurrencies to trade simultaneously</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="positionSizePct">Position Size (%):</label>
+                        <input type="number" id="positionSizePct" class="form-control" value="15" min="5" max="25" step="1">
+                        <small class="form-text text-muted">Percentage of portfolio to allocate per position</small>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info">
+                <strong>🧠 Autonomous Mode:</strong> The bot will scan all available cryptocurrencies, analyze each one using VLM + ML predictions, and autonomously decide which ones to trade. It will manage positions, risk, and portfolio allocation automatically.
+            </div>
+        </div>
+
+        <!-- Strategy Information Display -->
+        <div class="row mb-4" id="strategyInfo" style="display: none;">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>⚙️ Strategy Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Strategy Type</h6>
+                                <p id="strategyType">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>ML Integration</h6>
+                                <p id="mlIntegration">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Live Bot Sync</h6>
+                                <p id="liveBotSync">-</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Adaptive Features</h6>
+                                <ul id="adaptiveFeatures"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Summary Cards -->
+        <div class="row mb-4" id="summaryCards">
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>Total Return</h6>
+                    <h3 id="totalReturn">-</h3>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>Win Rate</h6>
+                    <h3 id="winRate">-</h3>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>Sharpe Ratio</h6>
+                    <h3 id="sharpeRatio">-</h3>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>Max Drawdown</h6>
+                    <h3 id="maxDrawdown">-</h3>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>Total Trades</h6>
+                    <h3 id="totalTrades">-</h3>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card text-center">
+                    <h6>ML Win Rate</h6>
+                    <h3 id="mlWinRate">-</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="chart-container">
+                    <h5>📈 Portfolio Balance Over Time</h5>
+                    <canvas id="balanceChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h5>🎯 Trade Distribution</h5>
+                    <canvas id="tradeDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>📊 Monthly Returns</h5>
+                    <canvas id="monthlyReturnsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>⏱️ Holding Time Distribution</h5>
+                    <canvas id="holdingTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade History Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>📋 Trade History</h5>
+                        <span id="tradeCount" class="badge bg-primary">0 trades</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tradesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Action</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>P&L</th>
+                                        <th>P&L %</th>
+                                        <th>Confidence</th>
+                                        <th>Hold Time</th>
+                                        <th>Date</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tradesTableBody">
+                                    <tr>
+                                        <td colspan="10" class="text-center text-muted">No backtest results available. Run a backtest to see trade history.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Discovery Results Section -->
+        <div id="results" class="row mb-4" style="display: none;">
+            <!-- Auto-discovery results will be inserted here -->
+        </div>
+
+        <!-- Status and Progress Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>📊 Backtest Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="statusContainer" style="display: none;">
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%">
+                                    <span id="progressText">Ready</span>
+                                </div>
+                            </div>
+                            <div id="statusMessage" class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <div id="statusIcon" class="me-2">⏳</div>
+                                    <div id="statusText">Ready to run backtest</div>
+                                </div>
+                            </div>
+                            <div id="timeElapsed" class="small text-muted">Time elapsed: 0 seconds</div>
+                        </div>
+                        
+                        <!-- Real-time Activity Log -->
+                        <div id="activityLog" style="display: none;">
+                            <h6>🔄 Live Activity Feed:</h6>
+                            <div id="logContainer" class="border rounded p-2" style="height: 150px; overflow-y: auto; background-color: #f8f9fa; font-family: monospace; font-size: 12px;">
+                                <!-- Activity messages will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Store charts for later use
+        let balanceChart, tradeDistChart, monthlyReturnsChart, holdingTimeChart;
+        let currentResults = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded, initializing...');
+            
+            // Check if elements exist
+            const runButton = document.getElementById('runBacktest');
+            const downloadButton = document.getElementById('downloadResults');
+            const modeSelect = document.getElementById('backtestMode');
+            
+            console.log('Elements found:', {
+                runButton: !!runButton,
+                downloadButton: !!downloadButton,
+                modeSelect: !!modeSelect
+            });
+            
+            if (!runButton) {
+                console.error('❌ Run button not found!');
+                return;
+            }
+            
+            if (!modeSelect) {
+                console.error('❌ Mode select not found!');
+                return;
+            }
+            
+            // Initialize charts
+            try {
+                initializeCharts();
+                console.log('✅ Charts initialized');
+            } catch (error) {
+                console.error('❌ Chart initialization failed:', error);
+            }
+            
+            // Load latest results
+            try {
+                loadLatestResults();
+                console.log('✅ Latest results loaded');
+            } catch (error) {
+                console.error('❌ Loading latest results failed:', error);
+            }
+            
+            // Add event listeners with error handling
+            runButton.addEventListener('click', function(event) {
+                console.log('🎯 Button clicked!');
+                event.preventDefault();
+                runBacktest();
+            });
+            
+            if (downloadButton) {
+                downloadButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    downloadResults();
+                });
+            }
+            
+            // Add mode change listener
+            modeSelect.addEventListener('change', function() {
+                console.log('Mode changed to:', this.value);
+                updateModeDescription(this.value);
+                toggleAutoDiscoveryParams(this.value);
+            });
+            
+            // Initial mode setup
+            updateModeDescription(modeSelect.value);
+            toggleAutoDiscoveryParams(modeSelect.value);
+            
+            console.log('✅ Page initialization complete');
+        });
+        
+        function updateModeDescription(mode) {
+            const descriptions = {
+                'basic': '<strong>📊 Basic Mode:</strong><br>✅ Traditional VLM strategy parameters<br>✅ Standard technical indicators only<br>✅ No ML integration<br>✅ Static position sizing',
+                'adaptive': '<strong>🧠 Adaptive Mode (Recommended):</strong><br>✅ Uses your LIVE trading strategy<br>✅ Integrates ML predictions from Enhanced Predictor<br>✅ Automatically adapts when strategy changes<br>✅ Confidence-based position sizing',
+                'auto_discovery': '<strong>🤖 Auto-Discovery Mode:</strong><br>✅ Scans ALL available cryptocurrencies<br>✅ Makes autonomous buy/sell decisions<br>✅ Uses VLM + ML for opportunity ranking<br>✅ Manages portfolio risk automatically'
+            };
+            
+            const descElement = document.getElementById('modeDescription');
+            if (descElement && descriptions[mode]) {
+                descElement.innerHTML = descriptions[mode];
+            }
+        }
+        
+        function toggleAutoDiscoveryParams(mode) {
+            const autoParams = document.getElementById('autoDiscoveryParams');
+            const symbolParams = document.querySelector('.col-md-3:last-child'); // Trading pairs field
+            
+            if (autoParams) {
+                if (mode === 'auto_discovery') {
+                    autoParams.style.display = 'block';
+                    if (symbolParams) symbolParams.style.display = 'none';
+                } else {
+                    autoParams.style.display = 'none';
+                    if (symbolParams) symbolParams.style.display = 'block';
+                }
+            }
+        }
+
+        function initializeCharts() {
+            console.log('🎨 Initializing charts...');
+            
+            try {
+                // Balance Chart
+                const balanceCtx = document.getElementById('balanceChart');
+                if (!balanceCtx) {
+                    console.error('❌ balanceChart canvas not found');
+                    return;
+                }
+                
+                balanceChart = new Chart(balanceCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Portfolio Balance',
+                            data: [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Balance chart initialized');
+
+                // Trade Distribution Chart
+                const tradeDistCtx = document.getElementById('tradeDistChart');
+                if (!tradeDistCtx) {
+                    console.error('❌ tradeDistChart canvas not found');
+                    return;
+                }
+                
+                tradeDistChart = new Chart(tradeDistCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Winning Trades', 'Losing Trades'],
+                        datasets: [{
+                            data: [0, 0],
+                            backgroundColor: ['#28a745', '#dc3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Trade distribution chart initialized');
+
+                // Monthly Returns Chart
+                const monthlyCtx = document.getElementById('monthlyReturnsChart');
+                if (!monthlyCtx) {
+                    console.error('❌ monthlyReturnsChart canvas not found');
+                    return;
+                }
+                
+                monthlyReturnsChart = new Chart(monthlyCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Monthly Return %',
+                            data: [],
+                            backgroundColor: function(context) {
+                                return context.parsed.y >= 0 ? '#28a745' : '#dc3545';
+                            }
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Monthly returns chart initialized');
+
+                // Holding Time Chart
+                const holdingCtx = document.getElementById('holdingTimeChart');
+                if (!holdingCtx) {
+                    console.error('❌ holdingTimeChart canvas not found');
+                    return;
+                }
+                
+                holdingTimeChart = new Chart(holdingCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-6h', '6-24h', '1-3d', '3-7d', '7d+'],
+                        datasets: [{
+                            label: 'Number of Trades',
+                            data: [0, 0, 0, 0, 0],
+                            backgroundColor: '#764ba2'
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+                console.log('✅ Holding time chart initialized');
+                
+                console.log('✅ All charts initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing charts:', error);
+                // Don't show error to user as charts are optional
+            }
+        }
+
+        function runBacktest() {
+            console.log('🚀 runBacktest() called');
+            
+            const mode = document.getElementById('backtestMode').value;
+            console.log('Selected mode:', mode);
+            
+            if (mode === 'auto_discovery') {
+                runAutoDiscoveryBacktest();
+            } else {
+                runRegularBacktest();
+            }
+        }
+
+        function runAutoDiscoveryBacktest() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+            const maxPositions = parseInt(document.getElementById('maxPositions').value);
+            const positionSizePct = parseFloat(document.getElementById('positionSizePct').value) / 100;
+
+            if (!startDate || !endDate) {
+                showError('Please select both start and end dates');
+                return;
+            }
+
+            showProgress('🤖 Starting autonomous discovery backtest...');
+            disableControls(true);
+
+            const requestData = {
+                start_date: startDate,
+                end_date: endDate,
+                initial_balance: initialBalance,
+                max_positions: maxPositions,
+                position_size_pct: positionSizePct
+            };
+
+            // Set timeout for auto-discovery (can take longer)
+            const timeoutId = setTimeout(() => {
+                showError('Auto-discovery backtest timed out (30 minutes). This is a comprehensive analysis - try a shorter date range or fewer symbols.');
+                disableControls(false);
+            }, 1800000); // 30 minutes
+
+            fetch('/api/run_auto_discovery', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearTimeout(timeoutId);
+                disableControls(false);
+                
+                console.log('🎯 Auto-discovery response received:', data);
+                console.log('Success status:', data.success);
+                console.log('Results keys:', data.results ? Object.keys(data.results) : 'No results');
+
+                if (data.success) {
+                    console.log('✅ Auto-discovery succeeded, showing results...');
+                    showSuccess(data.message || 'Auto-discovery backtest completed successfully!');
+                    try {
+                        displayAutoDiscoveryResults(data.results);
+                        console.log('✅ Results displayed successfully');
+                    } catch (displayError) {
+                        console.error('❌ Error displaying results:', displayError);
+                        showError('Results generated successfully but failed to display: ' + displayError.message);
+                    }
+                } else {
+                    console.log('❌ Auto-discovery failed:', data.message || data.error);
+                    showError(data.message || data.error || 'Auto-discovery backtest failed');
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                disableControls(false);
+                console.error('Error:', error);
+                showError('Failed to run auto-discovery backtest: ' + error.message);
+            });
+        }
+
+        function runRegularBacktest() {
+            // Existing backtest logic for basic/adaptive modes
+            const mode = document.getElementById('backtestMode').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const symbols = document.getElementById('symbols').value.split(',').map(s => s.trim()).filter(s => s);
+            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+
+            if (!startDate || !endDate) {
+                showError('Please select both start and end dates');
+                return;
+            }
+
+            if (symbols.length === 0) {
+                showError('Please enter at least one symbol');
+                return;
+            }
+
+            const modeText = mode === 'adaptive' ? 'adaptive (VLM + ML)' : 'basic VLM';
+            showProgress(`Running ${modeText} backtest...`);
+            disableControls(true);
+
+            const requestData = {
+                mode: mode,
+                start_date: startDate,
+                end_date: endDate,
+                symbols: symbols,
+                initial_balance: initialBalance
+            };
+
+            const timeoutId = setTimeout(() => {
+                showError('Backtest timed out (10 minutes). Try a shorter date range or fewer symbols.');
+                disableControls(false);
+            }, 600000); // 10 minutes
+
+            fetch('/api/run_backtest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                console.log('📡 Response received:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                clearTimeout(timeoutId);
+                disableControls(false);
+                
+                console.log('📊 Response data received:', data);
+                console.log('📊 Data keys:', Object.keys(data));
+                console.log('📊 Has error field:', 'error' in data);
+
+                if (data.error) {
+                    console.error('❌ API returned error:', data.error);
+                    alert('❌ Error detected: ' + data.error);
+                    showError(data.error || 'Backtest failed');
+                } else {
+                    // Success case - data contains the results directly
+                    console.log('✅ Success case detected');
+                    alert('✅ Success! Backtest completed. Total return: ' + (data.total_return || 0).toFixed(2) + '%');
+                    showSuccess('Backtest completed successfully!');
+                    currentResults = data;
+                    console.log('✅ Calling displayResults...');
+                    displayResults(data);
+                    console.log('✅ displayResults call completed');
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                disableControls(false);
+                console.error('❌ Fetch error occurred:', error);
+                console.error('❌ Error type:', typeof error);
+                console.error('❌ Error message:', error.message);
+                console.error('❌ Error stack:', error.stack);
+                alert('❌ Fetch error: ' + error.message);
+                showError('Failed to run backtest: ' + error.message);
+            });
+        }
+
+        function formatLargeNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0';
+            
+            const absNum = Math.abs(num);
+            if (absNum >= 1e24) return (num / 1e24).toFixed(2) + 'Y'; // Yotta
+            if (absNum >= 1e21) return (num / 1e21).toFixed(2) + 'Z'; // Zetta  
+            if (absNum >= 1e18) return (num / 1e18).toFixed(2) + 'E'; // Exa
+            if (absNum >= 1e15) return (num / 1e15).toFixed(2) + 'P'; // Peta
+            if (absNum >= 1e12) return (num / 1e12).toFixed(2) + 'T'; // Trillion
+            if (absNum >= 1e9) return (num / 1e9).toFixed(2) + 'B';    // Billion
+            if (absNum >= 1e6) return (num / 1e6).toFixed(2) + 'M';    // Million
+            if (absNum >= 1e3) return (num / 1e3).toFixed(2) + 'K';    // Thousand
+            return num.toLocaleString();
+        }
+
+        function formatPercentage(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0.00%';
+            if (Math.abs(num) >= 1e6) return formatLargeNumber(num) + '%';
+            return num.toFixed(2) + '%';
+        }
+
+        function displayAutoDiscoveryResults(results) {
+            // Display discovery-specific results
+            const resultsDiv = document.getElementById('results');
+            
+            if (!resultsDiv) {
+                console.error('❌ Results div not found!');
+                showError('Could not find results container. Please refresh the page.');
+                return;
+            }
+            
+            const discoveryStats = results.discovery_stats || {};
+            const autonomousTrading = results.autonomous_trading || {};
+            
+            resultsDiv.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h4>🤖 Autonomous Discovery Backtest Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Performance Overview -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value ${results.total_return >= 0 ? 'positive' : 'negative'}">
+                                        ${formatPercentage(results.total_return)}
+                                    </div>
+                                    <div class="metric-label">Total Return</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value">$${formatLargeNumber(results.final_balance || 0)}</div>
+                                    <div class="metric-label">Final Balance</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value">${formatPercentage(results.win_rate || 0)}</div>
+                                    <div class="metric-label">Win Rate</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value">${results.total_trades || 0}</div>
+                                    <div class="metric-label">Total Trades</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discovery Performance -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>🔍 Discovery Performance</h5>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${discoveryStats.scans_performed || 0}</div>
+                                            <div class="metric-label">Market Scans</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${discoveryStats.opportunities_found || 0}</div>
+                                            <div class="metric-label">Opportunities Found</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${discoveryStats.symbols_discovered || 0}</div>
+                                            <div class="metric-label">Cryptos Discovered</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${formatPercentage(autonomousTrading.discovery_success_rate || 0)}</div>
+                                            <div class="metric-label">Discovery Success Rate</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${formatLargeNumber(autonomousTrading.avg_hold_time || 0)} days</div>
+                                            <div class="metric-label">Avg Hold Time</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cryptocurrencies Traded -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>🪙 Cryptocurrencies Selected by Bot</h5>
+                                <div class="symbols-traded">
+                                    ${(discoveryStats.symbols_traded || []).map(symbol => 
+                                        `<span class="symbol-badge">${symbol}</span>`
+                                    ).join(' ')}
+                                </div>
+                                <small class="text-muted">The bot autonomously discovered and selected these cryptocurrencies for trading</small>
+                            </div>
+                        </div>
+
+                        <!-- Autonomous Trading Stats -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>🤖 Autonomous Trading Performance</h5>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${autonomousTrading.positions_opened || 0}</div>
+                                            <div class="metric-label">Positions Opened</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${autonomousTrading.positions_closed || 0}</div>
+                                            <div class="metric-label">Positions Closed</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${autonomousTrading.still_open || 0}</div>
+                                            <div class="metric-label">Still Open</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value">${autonomousTrading.max_concurrent_positions || 0}</div>
+                                            <div class="metric-label">Max Concurrent</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trade History -->
+                        ${displayTradeHistory(results.trade_history || [])}
+
+                        <!-- Strategy Information -->
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <h5>🧠 Strategy Information</h5>
+                                <div class="strategy-info">
+                                    <strong>Strategy Type:</strong> ${results.strategy_info?.strategy_type || 'Autonomous Discovery + VLM + ML'}<br>
+                                    <strong>Features:</strong>
+                                    <ul>
+                                        <li>✅ Automatic cryptocurrency discovery across all markets</li>
+                                        <li>✅ Real-time opportunity scoring and ranking</li>
+                                        <li>✅ VLM (Volatility-Liquidity-Momentum) analysis</li>
+                                        <li>✅ Machine learning prediction integration</li>
+                                        <li>✅ Dynamic position sizing and risk management</li>
+                                        <li>✅ Autonomous portfolio management</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Download Results -->
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <button class="btn btn-success" onclick="downloadResults('${JSON.stringify(results).replace(/'/g, "\\'")}', 'auto_discovery')">
+                                    📊 Download Full Results
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.style.display = 'block';
+        }
+
+        function displayResults(results) {
+            // Display regular backtest results (Basic/Adaptive modes)
+            console.log('📊 displayResults called with:', results);
+            
+            const resultsDiv = document.getElementById('results');
+            
+            if (!resultsDiv) {
+                console.error('❌ Results div not found!');
+                showError('Could not find results container. Please refresh the page.');
+                return;
+            }
+            
+            console.log('✅ Results div found');
+            
+            try {
+                // Show results section
+                resultsDiv.style.display = 'block';
+                console.log('✅ Results div made visible');
+                
+                // Update the dashboard with the results
+                updateDashboard(results);
+                console.log('✅ Dashboard updated');
+                
+                // Show the results section
+                const cardElements = document.querySelectorAll('.card');
+                console.log('✅ Found', cardElements.length, 'card elements');
+                
+                if (cardElements.length > 0) {
+                    cardElements.forEach(card => card.style.display = 'block');
+                }
+                
+                console.log('✅ displayResults completed successfully');
+                
+            } catch (error) {
+                console.error('❌ Error in displayResults:', error);
+                showError('Error displaying results: ' + error.message);
+            }
+        }
+
+        function updateDashboard(results) {
+            console.log('🔄 updateDashboard called with:', results);
+            
+            try {
+                // Handle both old nested format and new flat format
+                const summary = results.summary || results;
+                console.log('📊 Summary data:', summary);
+                
+                // Update summary cards with proper field names
+                const totalReturn = summary.total_return_pct || summary.total_return || 0;
+                const winRate = summary.win_rate_pct || summary.win_rate || 0;
+                const sharpeRatio = summary.sharpe_ratio || 0;
+                const maxDrawdown = summary.max_drawdown_pct || summary.max_drawdown || 0;
+                const totalTrades = summary.total_trades || 0;
+                
+                console.log('📈 Metrics calculated:', {totalReturn, winRate, sharpeRatio, maxDrawdown, totalTrades});
+                
+                const totalReturnEl = document.getElementById('totalReturn');
+                const winRateEl = document.getElementById('winRate');
+                const sharpeRatioEl = document.getElementById('sharpeRatio');
+                const maxDrawdownEl = document.getElementById('maxDrawdown');
+                const totalTradesEl = document.getElementById('totalTrades');
+                
+                if (totalReturnEl) {
+                    totalReturnEl.textContent = formatPercentage(totalReturn);
+                    totalReturnEl.className = totalReturn >= 0 ? 'positive' : 'negative';
+                    console.log('✅ Total return updated:', formatPercentage(totalReturn));
+                } else {
+                    console.warn('⚠️ totalReturn element not found');
+                }
+                
+                if (winRateEl) {
+                    winRateEl.textContent = formatPercentage(winRate);
+                    console.log('✅ Win rate updated:', formatPercentage(winRate));
+                } else {
+                    console.warn('⚠️ winRate element not found');
+                }
+                
+                if (sharpeRatioEl) {
+                    sharpeRatioEl.textContent = sharpeRatio.toFixed(2);
+                    console.log('✅ Sharpe ratio updated:', sharpeRatio.toFixed(2));
+                } else {
+                    console.warn('⚠️ sharpeRatio element not found');
+                }
+                
+                if (maxDrawdownEl) {
+                    maxDrawdownEl.textContent = formatPercentage(maxDrawdown);
+                    console.log('✅ Max drawdown updated:', formatPercentage(maxDrawdown));
+                } else {
+                    console.warn('⚠️ maxDrawdown element not found');
+                }
+                
+                if (totalTradesEl) {
+                    totalTradesEl.textContent = totalTrades;
+                    console.log('✅ Total trades updated:', totalTrades);
+                } else {
+                    console.warn('⚠️ totalTrades element not found');
+                }
+                
+                // Update ML win rate (for adaptive mode)
+                const mlWinRateEl = document.getElementById('mlWinRate');
+                if (results.ml_performance && mlWinRateEl) {
+                    mlWinRateEl.textContent = formatPercentage(results.ml_performance.high_confidence_win_rate || 0);
+                    console.log('✅ ML win rate updated');
+                } else if (mlWinRateEl) {
+                    mlWinRateEl.textContent = 'N/A';
+                    console.log('✅ ML win rate set to N/A');
+                }
+
+                // Update strategy information
+                const strategyInfoEl = document.getElementById('strategyInfo');
+                if (results.strategy_info && strategyInfoEl) {
+                    strategyInfoEl.style.display = 'block';
+                    
+                    const strategyTypeEl = document.getElementById('strategyType');
+                    const mlIntegrationEl = document.getElementById('mlIntegration');
+                    const liveBotSyncEl = document.getElementById('liveBotSync');
+                    
+                    if (strategyTypeEl) strategyTypeEl.textContent = results.strategy_info.strategy_type;
+                    if (mlIntegrationEl) mlIntegrationEl.textContent = results.strategy_info.ml_integration || 'None';
+                    if (liveBotSyncEl) liveBotSyncEl.textContent = results.strategy_info.live_bot_sync ? 'Yes' : 'No';
+                    
+                    const featuresList = document.getElementById('adaptiveFeatures');
+                    if (featuresList) {
+                        featuresList.innerHTML = '';
+                        if (results.strategy_info.adaptive_features) {
+                            results.strategy_info.adaptive_features.forEach(feature => {
+                                const li = document.createElement('li');
+                                li.textContent = feature;
+                                featuresList.appendChild(li);
+                            });
+                        }
+                    }
+                    console.log('✅ Strategy info updated');
+                }
+
+                // Update charts safely
+                try {
+                    if (results.daily_balances && balanceChart) {
+                        const dates = Object.keys(results.daily_balances);
+                        const balances = Object.values(results.daily_balances);
+                        
+                        balanceChart.data.labels = dates;
+                        balanceChart.data.datasets[0].data = balances;
+                        balanceChart.update();
+                        console.log('✅ Balance chart updated');
+                    } else {
+                        console.warn('⚠️ Balance chart or data not available');
+                    }
+                } catch (chartError) {
+                    console.error('❌ Error updating balance chart:', chartError);
+                }
+
+                // Update trade distribution safely
+                try {
+                    if (results.trade_history && tradeDistChart) {
+                        const completedTrades = results.trade_history.filter(t => t.action === 'sell' || t.action === 'partial_tp');
+                        const winningTrades = completedTrades.filter(t => t.pnl > 0).length;
+                        const losingTrades = completedTrades.length - winningTrades;
+                        
+                        tradeDistChart.data.datasets[0].data = [winningTrades, losingTrades];
+                        tradeDistChart.update();
+                        console.log('✅ Trade distribution chart updated');
+                    } else {
+                        console.warn('⚠️ Trade distribution chart or data not available');
+                    }
+                } catch (chartError) {
+                    console.error('❌ Error updating trade distribution chart:', chartError);
+                }
+
+                // Update trades table
+                try {
+                    if (results.trade_history) {
+                        updateTradesTable(results.trade_history);
+                        console.log('✅ Trades table updated');
+                    } else {
+                        console.warn('⚠️ No trade history available');
+                    }
+                } catch (tableError) {
+                    console.error('❌ Error updating trades table:', tableError);
+                }
+                
+                console.log('✅ updateDashboard completed successfully');
+                
+            } catch (error) {
+                console.error('❌ Error in updateDashboard:', error);
+                showError('Error updating dashboard: ' + error.message);
+            }
+        }
+
+        function updateTradesTable(trades) {
+            const tbody = document.getElementById('tradesTableBody');
+            const tradeCount = document.getElementById('tradeCount');
+            
+            tbody.innerHTML = '';
+            tradeCount.textContent = trades.length + ' trades';
+
+            trades.slice(-50).reverse().forEach(trade => {
+                const row = tbody.insertRow();
+                row.className = 'trade-row';
+                
+                const pnlClass = trade.pnl > 0 ? 'positive' : trade.pnl < 0 ? 'negative' : 'neutral';
+                
+                row.innerHTML = `
+                    <td><strong>${trade.symbol}</strong></td>
+                    <td><span class="badge ${trade.action === 'buy' ? 'bg-success' : 'bg-danger'}">${trade.action.toUpperCase()}</span></td>
+                    <td>$${trade.price.toFixed(4)}</td>
+                    <td>${trade.quantity.toFixed(6)}</td>
+                    <td class="${pnlClass}">$${(trade.pnl || 0).toFixed(2)}</td>
+                    <td class="${pnlClass}">${formatPercentage(trade.pnl_pct || 0)}</td>
+                    <td>${formatPercentage(trade.confidence || 0)}</td>
+                    <td>${formatLargeNumber(trade.hold_time || 0)}h</td>
+                    <td>${new Date(trade.timestamp).toLocaleDateString()}</td>
+                    <td><small>${trade.reason}</small></td>
+                `;
+            });
+        }
+
+        async function downloadResults() {
+            if (!currentResults) {
+                alert('No backtest results to download');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/download_backtest_results');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'backtest_results.json';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download results');
+            }
+        }
+
+        // Progress and Status Functions
+        let startTime = null;
+        let progressInterval = null;
+
+        function showProgress(message, showLog = true) {
+            // Show status container
+            document.getElementById('statusContainer').style.display = 'block';
+            
+            // Update status
+            const statusMessage = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const statusIcon = document.getElementById('statusIcon');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            statusMessage.className = 'alert alert-info';
+            statusIcon.textContent = '⏳';
+            statusText.textContent = message;
+            progressText.textContent = 'Running...';
+            
+            // Show activity log
+            if (showLog) {
+                document.getElementById('activityLog').style.display = 'block';
+                addLogMessage(`🚀 ${message}`, 'info');
+            }
+            
+            // Start progress animation
+            let progress = 0;
+            progressBar.style.width = '0%';
+            progressBar.classList.add('progress-bar-animated');
+            
+            // Start timer
+            startTime = Date.now();
+            updateElapsedTime();
+            progressInterval = setInterval(updateElapsedTime, 1000);
+            
+            // Simulate progress for auto-discovery (since it takes longer)
+            if (message.includes('autonomous') || message.includes('discovery')) {
+                simulateProgressFor(180); // 3 minutes max
+                addLogMessage('🔍 Scanning all available cryptocurrencies...', 'info');
+                setTimeout(() => addLogMessage('🧠 Analyzing opportunities with VLM + ML...', 'info'), 5000);
+                setTimeout(() => addLogMessage('⚡ Processing technical indicators...', 'info'), 10000);
+                setTimeout(() => addLogMessage('🎯 Ranking trading opportunities...', 'info'), 15000);
+                setTimeout(() => addLogMessage('🤖 Making autonomous trading decisions...', 'info'), 20000);
+            } else {
+                simulateProgressFor(60); // 1 minute for regular backtests
+                addLogMessage('📊 Processing market data...', 'info');
+                setTimeout(() => addLogMessage('📈 Calculating technical indicators...', 'info'), 3000);
+                setTimeout(() => addLogMessage('🔄 Executing trading strategy...', 'info'), 8000);
+            }
+        }
+
+        function showSuccess(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const statusIcon = document.getElementById('statusIcon');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            statusMessage.className = 'alert alert-success';
+            statusIcon.textContent = '✅';
+            statusText.textContent = message;
+            progressBar.style.width = '100%';
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-success');
+            progressText.textContent = 'Completed!';
+            
+            addLogMessage(`✅ ${message}`, 'success');
+            
+            // Stop timer
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                document.getElementById('statusContainer').style.display = 'none';
+                document.getElementById('activityLog').style.display = 'none';
+                clearLogMessages();
+            }, 5000);
+        }
+
+        function showError(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const statusIcon = document.getElementById('statusIcon');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            statusMessage.className = 'alert alert-danger';
+            statusIcon.textContent = '❌';
+            statusText.textContent = message;
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-danger');
+            progressText.textContent = 'Failed';
+            
+            addLogMessage(`❌ ${message}`, 'error');
+            
+            // Stop timer
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // Auto-hide after 10 seconds for errors
+            setTimeout(() => {
+                document.getElementById('statusContainer').style.display = 'none';
+                document.getElementById('activityLog').style.display = 'none';
+                clearLogMessages();
+            }, 10000);
+        }
+
+        function disableControls(disabled) {
+            const runButton = document.getElementById('runBacktest');
+            const inputs = document.querySelectorAll('input, select');
+            
+            runButton.disabled = disabled;
+            inputs.forEach(input => input.disabled = disabled);
+            
+            if (disabled) {
+                runButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+                runButton.classList.add('btn-secondary');
+                runButton.classList.remove('btn-primary');
+            } else {
+                runButton.innerHTML = '<i class="bi bi-play-circle"></i> Run New Backtest';
+                runButton.classList.remove('btn-secondary');
+                runButton.classList.add('btn-primary');
+            }
+        }
+
+        function simulateProgressFor(totalSeconds) {
+            let elapsed = 0;
+            const progressBar = document.getElementById('progressBar');
+            
+            const progressTimer = setInterval(() => {
+                elapsed += 2;
+                const percentage = Math.min((elapsed / totalSeconds) * 85, 85); // Cap at 85% until completion
+                progressBar.style.width = percentage + '%';
+                
+                if (elapsed >= totalSeconds) {
+                    clearInterval(progressTimer);
+                }
+            }, 2000);
+        }
+
+        function updateElapsedTime() {
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timeString = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                document.getElementById('timeElapsed').textContent = `Time elapsed: ${timeString}`;
+            }
+        }
+
+        function addLogMessage(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'success' ? 'text-success' : 
+                              type === 'error' ? 'text-danger' : 
+                              type === 'warning' ? 'text-warning' : 'text-info';
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `${colorClass} mb-1`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 messages
+            const entries = logContainer.children;
+            if (entries.length > 50) {
+                logContainer.removeChild(entries[0]);
+            }
+        }
+
+        function clearLogMessages() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        // Add visual feedback for button clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            const runButton = document.getElementById('runBacktest');
+            runButton.addEventListener('click', function() {
+                if (!this.disabled) {
+                    // Add click animation
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            });
+        });
+
+        function displayTradeHistory(trades) {
+            if (!trades || trades.length === 0) {
+                return `
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h5>📈 Trade History</h5>
+                            <p class="text-muted">No trades executed during this backtest period.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Show last 20 trades for display
+            const recentTrades = trades.slice(-20).reverse();
+            
+            return `
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h5>📈 Recent Trade History (Last 20 Trades)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Action</th>
+                                        <th>Price</th>
+                                        <th>Size</th>
+                                        <th>P&L</th>
+                                        <th>P&L %</th>
+                                        <th>Date</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${recentTrades.map(trade => `
+                                        <tr>
+                                            <td><strong>${trade.symbol || trade.crypto || 'Unknown'}</strong></td>
+                                            <td><span class="badge ${(trade.action || trade.type) === 'buy' || (trade.action || trade.type) === 'OPENED' ? 'bg-success' : 'bg-danger'}">${(trade.action || trade.type || '').toUpperCase()}</span></td>
+                                            <td>$${formatLargeNumber(trade.price || trade.entry_price || 0)}</td>
+                                            <td>${formatLargeNumber(trade.size || trade.quantity || 0)}</td>
+                                            <td class="${(trade.pnl || 0) >= 0 ? 'text-success' : 'text-danger'}">$${formatLargeNumber(trade.pnl || 0)}</td>
+                                            <td class="${(trade.pnl_pct || 0) >= 0 ? 'text-success' : 'text-danger'}">${formatPercentage(trade.pnl_pct || 0)}</td>
+                                            <td>${trade.date || trade.timestamp || 'Unknown'}</td>
+                                            <td><small>${trade.reason || trade.exit_reason || 'N/A'}</small></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-muted">Total trades: ${trades.length} | Showing most recent ${Math.min(20, trades.length)} trades</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Test function for debugging - can be called from browser console
+        function testBacktestAPI() {
+            console.log('🧪 Testing backtest API connection...');
+            
+            const testData = {
+                mode: 'basic',
+                start_date: '2024-01-01',
+                end_date: '2024-01-05',
+                symbols: ['BTCUSDT'],
+                initial_balance: 10000
+            };
+            
+            fetch('/api/run_backtest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(testData)
+            })
+            .then(response => {
+                console.log('🧪 Test response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('🧪 Test response data:', data);
+                console.log('🧪 Test successful!');
+                return data;
+            })
+            .catch(error => {
+                console.error('🧪 Test failed:', error);
+                return null;
+            });
+        }
+    </script>
+</body>
+</html> 

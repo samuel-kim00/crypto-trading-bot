@@ -1,0 +1,13 @@
+Trading bot stopped at 2025-06-19T08:59:50.919721
+Please check logs for details
+
+Recent log entries:
+2025-06-18 12:31:14,608 - INFO - Starting dashboard...
+2025-06-18 12:31:14,736 - ERROR - Dashboard failed to start: /opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/samuelkim/Cursor Trading bot/app.py': [Errno 2] No such file or directory
+
+2025-06-18 12:31:14,736 - ERROR - Failed to start dashboard
+
+System Information:
+CPU Usage: 21.0%
+Memory Usage: 82.1%
+Disk Usage: 24.7%

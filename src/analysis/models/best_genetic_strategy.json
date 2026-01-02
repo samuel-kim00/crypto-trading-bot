@@ -1,0 +1,14 @@
+{
+  "rsi_buy_threshold": 55.581457190213655,
+  "rsi_sell_threshold": 123.97035040019489,
+  "macd_sensitivity": 2.1997747360494038,
+  "volume_threshold": 1.4823150763608934,
+  "stop_loss_pct": 0.01555872645452264,
+  "take_profit_pct": 0.07854363388849576,
+  "position_size_pct": 3.2751563675037287,
+  "holding_time_max": 118,
+  "risk_tolerance": 0.16435533058476443,
+  "trend_following_weight": 0.07598543243082602,
+  "mean_reversion_weight": 0.40772135750107397,
+  "momentum_weight": 0.3292280450348302
+}

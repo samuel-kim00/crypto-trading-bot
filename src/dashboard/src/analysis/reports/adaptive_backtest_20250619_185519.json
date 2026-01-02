@@ -1,0 +1,94 @@
+{
+  "summary": {
+    "initial_balance": 10000,
+    "final_balance": 10000,
+    "total_return_pct": 0.0,
+    "total_trades": 0,
+    "win_rate_pct": 0,
+    "avg_win_pct": 0,
+    "avg_loss_pct": 0,
+    "volatility_pct": 0.0,
+    "sharpe_ratio": 0,
+    "max_drawdown_pct": 0
+  },
+  "strategy_info": {
+    "strategy_type": "Live VLM + Enhanced ML Predictions",
+    "adaptive_features": [
+      "Live strategy synchronization",
+      "ML prediction integration",
+      "Dynamic confidence-based position sizing",
+      "Real-time strategy parameter updates"
+    ],
+    "ml_integration": "Enhanced Predictor with day/long-term categorization",
+    "live_bot_sync": true
+  },
+  "ml_performance": {
+    "high_confidence_win_rate": 0,
+    "predictions_used": 32,
+    "confidence_avg": 0
+  },
+  "daily_balances": {
+    "2024-03-01 00:00:00": 10000,
+    "2024-03-02 00:00:00": 10000,
+    "2024-03-03 00:00:00": 10000,
+    "2024-03-04 00:00:00": 10000,
+    "2024-03-05 00:00:00": 10000,
+    "2024-03-06 00:00:00": 10000,
+    "2024-03-07 00:00:00": 10000,
+    "2024-03-08 00:00:00": 10000,
+    "2024-03-09 00:00:00": 10000,
+    "2024-03-10 00:00:00": 10000,
+    "2024-03-11 00:00:00": 10000,
+    "2024-03-12 00:00:00": 10000,
+    "2024-03-13 00:00:00": 10000,
+    "2024-03-14 00:00:00": 10000,
+    "2024-03-15 00:00:00": 10000,
+    "2024-03-16 00:00:00": 10000,
+    "2024-03-17 00:00:00": 10000,
+    "2024-03-18 00:00:00": 10000,
+    "2024-03-19 00:00:00": 10000,
+    "2024-03-20 00:00:00": 10000,
+    "2024-03-21 00:00:00": 10000,
+    "2024-03-22 00:00:00": 10000,
+    "2024-03-23 00:00:00": 10000,
+    "2024-03-24 00:00:00": 10000,
+    "2024-03-25 00:00:00": 10000,
+    "2024-03-26 00:00:00": 10000,
+    "2024-03-27 00:00:00": 10000,
+    "2024-03-28 00:00:00": 10000,
+    "2024-03-29 00:00:00": 10000,
+    "2024-03-30 00:00:00": 10000,
+    "2024-03-31 00:00:00": 10000,
+    "2024-04-01 00:00:00": 10000
+  },
+  "trade_history": [],
+  "performance_metrics": {
+    "profit_factor": Infinity,
+    "total_fees_paid": 0,
+    "avg_holding_time_hours": 0,
+    "live_strategy_config": {
+      "risk_per_trade": 0.02,
+      "max_position_size": 0.1,
+      "stop_loss_pct": 0.015,
+      "take_profit_levels": [
+        0.03,
+        0.05,
+        0.06
+      ],
+      "take_profit_sizes": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "time_based_stop": 180,
+      "volume_spike_threshold": 3.0,
+      "rsi_long_range": [
+        45,
+        70
+      ],
+      "liquidity_threshold": 500000,
+      "spread_threshold": 0.005,
+      "sentiment_weight": 0.2
+    }
+  }
+}

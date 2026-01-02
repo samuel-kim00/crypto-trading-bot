@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: 1px solid #404040;
+        }
+        .btn-success {
+            background-color: #00ff00;
+            border-color: #00ff00;
+            color: #000000;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000000;
+        }
+        .alert-success {
+            background-color: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .alert-info {
+            background-color: rgba(0, 123, 255, 0.1);
+            border-color: #007bff;
+            color: #007bff;
+        }
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+        .progress {
+            background-color: #404040;
+        }
+        .progress-bar {
+            background-color: #00ff00;
+        }
+        .spinner-border {
+            color: #00ff00;
+        }
+        .nav-tabs .nav-link {
+            color: #ffffff;
+            background-color: #2d2d2d;
+            border-color: #404040;
+        }
+        .nav-tabs .nav-link.active {
+            color: #000000;
+            background-color: #00ff00;
+        }
+        .form-control {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+        .form-control:focus {
+            background-color: #2d2d2d;
+            border-color: #00ff00;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 255, 0, 0.25);
+        }
+        .form-select {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-robot"></i> AI Trading Bot</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Dashboard</a>
+                <a class="nav-link" href="/backtest">Backtest</a>
+                <a class="nav-link active" href="/ai-training">AI Training</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2><i class="fas fa-brain"></i> AI Training Dashboard</h2>
+                <p class="text-muted">Train and manage your AI trading models</p>
+            </div>
+        </div>
+
+        <!-- AI Status Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5><i class="fas fa-robot"></i> Self-Learning Status</h5>
+                        <div id="self-learning-status">
+                            <div class="spinner-border" role="status"></div>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5><i class="fas fa-chart-line"></i> Market Intelligence</h5>
+                        <div id="market-intelligence-status">
+                            <div class="spinner-border" role="status"></div>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5><i class="fas fa-network-wired"></i> Advanced AI</h5>
+                        <div id="advanced-ai-status">
+                            <div class="spinner-border" role="status"></div>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5><i class="fas fa-cogs"></i> Training Progress</h5>
+                        <div id="training-progress">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p class="mt-2">Idle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Controls -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="aiTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-training-tab" data-bs-toggle="tab" data-bs-target="#basic-training" type="button" role="tab">
+                            <i class="fas fa-play"></i> Basic Training
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="advanced-training-tab" data-bs-toggle="tab" data-bs-target="#advanced-training" type="button" role="tab">
+                            <i class="fas fa-rocket"></i> Advanced Training
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="market-intelligence-tab" data-bs-toggle="tab" data-bs-target="#market-intelligence" type="button" role="tab">
+                            <i class="fas fa-globe"></i> Market Intelligence
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab">
+                            <i class="fas fa-chart-bar"></i> Monitoring
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="aiTabsContent">
+                    <!-- Basic Training Tab -->
+                    <div class="tab-pane fade show active" id="basic-training" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-brain"></i> Self-Learning Bot Training</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Train the AI bot with reinforcement learning, genetic algorithms, and pattern recognition.</p>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Trading Symbols</label>
+                                            <select class="form-select" id="training-symbols" multiple>
+                                                <option value="BTCUSDT" selected>BTC/USDT</option>
+                                                <option value="ETHUSDT" selected>ETH/USDT</option>
+                                                <option value="BNBUSDT">BNB/USDT</option>
+                                                <option value="ADAUSDT">ADA/USDT</option>
+                                                <option value="SOLUSDT">SOL/USDT</option>
+                                            </select>
+                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple symbols</small>
+                                        </div>
+                                        
+                                        <button class="btn btn-success" id="start-self-learning" onclick="startSelfLearningTraining()">
+                                            <i class="fas fa-play"></i> Start Self-Learning Training
+                                        </button>
+                                        
+                                        <div id="self-learning-progress" class="mt-3" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-spinner fa-spin"></i> Training in progress...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-chart-area"></i> Quick Backtest</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Test your AI models with a quick backtest.</p>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Start Date</label>
+                                                <input type="date" class="form-control" id="quick-start-date" value="2025-05-01">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">End Date</label>
+                                                <input type="date" class="form-control" id="quick-end-date" value="2025-06-01">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <label class="form-label">Initial Balance</label>
+                                            <input type="number" class="form-control" id="quick-balance" value="10000">
+                                        </div>
+                                        
+                                        <button class="btn btn-primary mt-3" onclick="runQuickBacktest()">
+                                            <i class="fas fa-play"></i> Run Quick Backtest
+                                        </button>
+                                        
+                                        <div id="quick-backtest-results" class="mt-3" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Training Tab -->
+                    <div class="tab-pane fade" id="advanced-training" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-rocket"></i> Advanced Market AI</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Train AI with multiple data sources including news sentiment and social media.</p>
+                                        <button class="btn btn-warning" onclick="startAdvancedTraining()">
+                                            <i class="fas fa-rocket"></i> Start Advanced Training
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-sync"></i> Auto Training</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Start automatic background training that runs continuously.</p>
+                                        <button class="btn btn-success" onclick="startAutoTraining()">
+                                            <i class="fas fa-sync"></i> Start Auto Training
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-star"></i> Comprehensive Training</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Complete training pipeline with all intelligence sources.</p>
+                                        <button class="btn btn-primary" onclick="startComprehensiveTraining()">
+                                            <i class="fas fa-star"></i> Start Comprehensive
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Intelligence Tab -->
+                    <div class="tab-pane fade" id="market-intelligence" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-globe"></i> Gather Market Intelligence</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Collect market sentiment from YouTube, news, and social media.</p>
+                                        <button class="btn btn-info" onclick="gatherMarketIntelligence()">
+                                            <i class="fas fa-download"></i> Gather Intelligence
+                                        </button>
+                                        
+                                        <div id="intelligence-status" class="mt-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-eye"></i> AI Predictions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Get AI Prediction for Symbol</label>
+                                            <select class="form-select" id="prediction-symbol">
+                                                <option value="BTCUSDT">BTC/USDT</option>
+                                                <option value="ETHUSDT">ETH/USDT</option>
+                                                <option value="BNBUSDT">BNB/USDT</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-success" onclick="getAIPrediction()">
+                                            <i class="fas fa-crystal-ball"></i> Get Prediction
+                                        </button>
+                                        
+                                        <div id="prediction-results" class="mt-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monitoring Tab -->
+                    <div class="tab-pane fade" id="monitoring" role="tabpanel">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-list"></i> Training Log</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="training-log" style="max-height: 400px; overflow-y: auto;">
+                                            <p class="text-muted">No training log available yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update status every 5 seconds
+        setInterval(updateStatus, 5000);
+        updateStatus(); // Initial load
+
+        function updateStatus() {
+            // Update self-learning status
+            fetch('/api/self_learning_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update status text
+                        const isTraining = data.training_status.is_training;
+                        const progress = data.training_status.progress || 0;
+                        const statusHtml = `
+                            <div class="text-${data.learning_indicators.models_trained ? 'success' : (isTraining ? 'info' : 'warning')}">
+                                <i class="fas fa-${data.learning_indicators.models_trained ? 'check-circle' : (isTraining ? 'spinner fa-spin' : 'clock')}"></i>
+                                <p>${data.learning_indicators.models_trained ? 'Trained' : (isTraining ? 'Training... ' + progress + '%' : 'Not Trained')}</p>
+                                ${data.model_info.dqn_model && data.model_info.dqn_model.episodes_trained ? '<small>' + data.model_info.dqn_model.episodes_trained + ' episodes</small>' : ''}
+                                ${isTraining ? '<small class="text-muted">Stage: ' + data.training_status.current_stage + '</small>' : ''}
+                            </div>
+                        `;
+                        document.getElementById('self-learning-status').innerHTML = statusHtml;
+                        
+                        // Update progress bars
+                        const progressBars = document.querySelectorAll('.progress-bar');
+                        progressBars.forEach((bar, index) => {
+                            if (index === 0) { // Self-learning progress bar
+                                bar.style.width = progress + '%';
+                                bar.textContent = progress + '%';
+                                if (isTraining) {
+                                    bar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-info';
+                                } else if (data.learning_indicators.models_trained) {
+                                    bar.className = 'progress-bar bg-success';
+                                    bar.style.width = '100%';
+                                    bar.textContent = '100%';
+                                }
+                            }
+                        });
+                        
+                        // Update auto-training status if available
+                        if (data.auto_training) {
+                            const autoProgress = data.auto_training.current_progress || 0;
+                            if (progressBars.length > 1) {
+                                progressBars[1].style.width = autoProgress + '%';
+                                progressBars[1].textContent = autoProgress + '%';
+                                if (data.auto_training.is_training) {
+                                    progressBars[1].className = 'progress-bar progress-bar-striped progress-bar-animated bg-warning';
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch(err => console.error('Error fetching self-learning status:', err));
+
+            // Update market intelligence status
+            fetch('/api/market_intelligence_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusHtml = `
+                            <div class="text-${data.intelligence_available ? 'success' : 'warning'}">
+                                <i class="fas fa-${data.intelligence_available ? 'check-circle' : 'clock'}"></i>
+                                <p>${data.intelligence_available ? 'Available' : 'Not Available'}</p>
+                                ${data.last_update ? '<small>' + data.last_update + '</small>' : ''}
+                            </div>
+                        `;
+                        document.getElementById('market-intelligence-status').innerHTML = statusHtml;
+                    }
+                })
+                .catch(err => console.error('Error fetching market intelligence status:', err));
+
+            // Update advanced AI status
+            fetch('/api/advanced_ai_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusHtml = `
+                            <div class="text-${data.training_completed ? 'success' : 'warning'}">
+                                <i class="fas fa-${data.training_completed ? 'check-circle' : 'clock'}"></i>
+                                <p>${data.training_completed ? 'Trained' : 'Not Trained'}</p>
+                                ${data.last_update ? '<small>' + data.last_update + '</small>' : ''}
+                            </div>
+                        `;
+                        document.getElementById('advanced-ai-status').innerHTML = statusHtml;
+                    }
+                })
+                .catch(err => console.error('Error fetching advanced AI status:', err));
+
+            // Update training log
+            fetch('/api/ai_training_log')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.training_log.length > 0) {
+                        const logHtml = data.training_log.slice(-10).map(entry => 
+                            `<p><small class="text-muted">${entry.timestamp}</small> - ${entry.message}</p>`
+                        ).join('');
+                        document.getElementById('training-log').innerHTML = logHtml;
+                    }
+                })
+                .catch(err => console.error('Error fetching training log:', err));
+        }
+
+        function startSelfLearningTraining() {
+            const symbols = Array.from(document.getElementById('training-symbols').selectedOptions).map(option => option.value);
+            
+            document.getElementById('self-learning-progress').style.display = 'block';
+            document.getElementById('start-self-learning').disabled = true;
+            
+            fetch('/api/train_self_learning_bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbols: symbols })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('self-learning-progress').innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> ${data.message}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('self-learning-progress').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation"></i> Error: ${data.error}
+                        </div>
+                    `;
+                }
+                document.getElementById('start-self-learning').disabled = false;
+            })
+            .catch(err => {
+                document.getElementById('self-learning-progress').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation"></i> Network error: ${err.message}
+                    </div>
+                `;
+                document.getElementById('start-self-learning').disabled = false;
+            });
+        }
+
+        function startAdvancedTraining() {
+            fetch('/api/train_advanced_ai', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Advanced AI training started! Check the monitoring tab for progress.');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(err => alert('Network error: ' + err.message));
+        }
+
+        function startAutoTraining() {
+            fetch('/api/start_auto_training', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Auto-training started! Models will train continuously in background.');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(err => alert('Network error: ' + err.message));
+        }
+
+        function startComprehensiveTraining() {
+            fetch('/api/start_comprehensive_ai_training', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Comprehensive training started! This includes all AI techniques and market intelligence.');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(err => alert('Network error: ' + err.message));
+        }
+
+        function gatherMarketIntelligence() {
+            fetch('/api/gather_market_intelligence', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('intelligence-status').innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-check"></i> Market intelligence gathering started!
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('intelligence-status').innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation"></i> Error: ${data.error}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('intelligence-status').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation"></i> Network error: ${err.message}
+                        </div>
+                    `;
+                });
+        }
+
+        function getAIPrediction() {
+            const symbol = document.getElementById('prediction-symbol').value;
+            
+            fetch(`/api/get_ai_prediction/${symbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const prediction = data.prediction;
+                        document.getElementById('prediction-results').innerHTML = `
+                            <div class="alert alert-info">
+                                <h6>AI Prediction for ${symbol}</h6>
+                                <p><strong>Action:</strong> ${prediction.action}</p>
+                                <p><strong>Confidence:</strong> ${(prediction.confidence * 100).toFixed(1)}%</p>
+                                <p><strong>Price Target:</strong> $${prediction.target_price.toFixed(4)}</p>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('prediction-results').innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation"></i> ${data.error}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('prediction-results').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation"></i> Network error: ${err.message}
+                        </div>
+                    `;
+                });
+        }
+
+        function runQuickBacktest() {
+            const startDate = document.getElementById('quick-start-date').value;
+            const endDate = document.getElementById('quick-end-date').value;
+            const balance = parseInt(document.getElementById('quick-balance').value);
+            
+            document.getElementById('quick-backtest-results').style.display = 'block';
+            document.getElementById('quick-backtest-results').innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-spinner fa-spin"></i> Running backtest...
+                </div>
+            `;
+            
+            fetch('/api/run_self_learning_backtest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symbols: ['BTCUSDT'],
+                    start_date: startDate,
+                    end_date: endDate,
+                    initial_balance: balance
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const results = data.results.performance_summary;
+                    document.getElementById('quick-backtest-results').innerHTML = `
+                        <div class="alert alert-success">
+                            <h6>Backtest Results</h6>
+                            <p><strong>Final Balance:</strong> $${results.final_balance.toFixed(2)}</p>
+                            <p><strong>Total Return:</strong> ${results.total_return_pct.toFixed(2)}%</p>
+                            <p><strong>Total Trades:</strong> ${results.total_trades}</p>
+                            <p><strong>Win Rate:</strong> ${results.win_rate_pct.toFixed(1)}%</p>
+                            <p><strong>Sharpe Ratio:</strong> ${results.sharpe_ratio.toFixed(2)}</p>
+                            <p><strong>Max Drawdown:</strong> ${results.max_drawdown_pct.toFixed(2)}%</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('quick-backtest-results').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation"></i> Error: ${data.error}
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                document.getElementById('quick-backtest-results').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation"></i> Network error: ${err.message}
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 

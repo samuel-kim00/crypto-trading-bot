@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM Scalper Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/trading-vue-js"></script>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: 1px solid #3d3d3d;
+        }
+        .table {
+            color: #ffffff;
+        }
+        .profit {
+            color: #00ff00;
+        }
+        .loss {
+            color: #ff0000;
+        }
+        .nav-link {
+            color: #ffffff;
+        }
+        .nav-link:hover {
+            color: #00ff00;
+        }
+        .chart-container {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .stats-card {
+            height: 120px;
+        }
+        .active-trade {
+            background-color: #1e4620;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">🚀 VLM Scalper</a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link active" href="/">📊 Dashboard</a>
+                <a class="nav-link" href="/backtest">📈 Backtesting</a>
+                <a class="nav-link" href="/ai-training">🤖 AI Training</a>
+                    </div>
+            <div class="d-flex">
+                <span class="navbar-text me-3">
+                    Bot Status: <span id="bot-status" class="badge bg-success">Running</span>
+                </span>
+                <span class="navbar-text">
+                    Last Update: <span id="last-update"></span>
+                </span>
+                    </div>
+                    </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Performance Overview Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Initial Budget</h5>
+                        <h2 class="card-text" id="initial-budget">$0.00</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Current Balance</h5>
+                        <h2 class="card-text" id="current-balance">$0.00</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Profit/Loss</h5>
+                        <h2 class="card-text" id="total-pnl">$0.00</h2>
+        </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Win Rate</h5>
+                        <h2 class="card-text" id="win-rate">0%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Trades -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Active Trades</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover" id="active-trades">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Side</th>
+                                        <th>Entry Price</th>
+                                        <th>Current Price</th>
+                                        <th>Size</th>
+                                        <th>Unrealized P/L</th>
+                                        <th>Time in Trade</th>
+                                        <th>Chart</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+            </div>
+        </div>
+            </div>
+        </div>
+
+        <!-- Performance Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Daily Profit/Loss</h5>
+                        </div>
+                    <div class="card-body chart-container">
+                        <canvas id="daily-pnl-chart"></canvas>
+                        </div>
+                </div>
+                        </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Profit by Coin</h5>
+                        </div>
+                    <div class="card-body chart-container">
+                        <canvas id="coin-pnl-chart"></canvas>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Trade History</h5>
+                            <div class="btn-group">
+                                <button class="btn btn-outline-light active" data-period="daily">Daily</button>
+                                <button class="btn btn-outline-light" data-period="weekly">Weekly</button>
+                                <button class="btn btn-outline-light" data-period="monthly">Monthly</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover" id="trade-history">
+                                <thead>
+                                    <tr>
+                                        <th>Date/Time</th>
+                                        <th>Symbol</th>
+                                        <th>Side</th>
+                                        <th>Entry Price</th>
+                                        <th>Exit Price</th>
+                                        <th>Size</th>
+                                        <th>Profit/Loss</th>
+                                        <th>Duration</th>
+                                        <th>Strategy Signals</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Predictions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Weekly AI Predictions & Recommendations</h5>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-success btn-lg" onclick="generateWeeklyReport()" style="font-weight: bold; box-shadow: 0 4px 8px rgba(0,255,0,0.3);">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate New Report
+                                </button>
+                                <button class="btn btn-outline-primary btn-lg" onclick="downloadReportPDF()" style="font-weight: bold;">
+                                    <i class="bi bi-download"></i> Download PDF
+                                </button>
+                                <button class="btn btn-outline-warning btn-lg" onclick="generateAndDownloadPDF()" style="font-weight: bold;">
+                                    <i class="bi bi-file-earmark-pdf"></i> Generate & Download PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="weekly-report-content">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p>Loading weekly predictions...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Daily Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <tbody>
+                                    <tr>
+                                        <td>Trades</td>
+                                        <td id="daily-trades">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Win Rate</td>
+                                        <td id="daily-win-rate">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Profit/Loss</td>
+                                        <td id="daily-pnl">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Weekly Stats</h5>
+                            </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <tbody>
+                                    <tr>
+                                        <td>Trades</td>
+                                        <td id="weekly-trades">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Win Rate</td>
+                                        <td id="weekly-win-rate">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Profit/Loss</td>
+                                        <td id="weekly-pnl">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Monthly Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <tbody>
+                                    <tr>
+                                        <td>Trades</td>
+                                        <td id="monthly-trades">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Win Rate</td>
+                                        <td id="monthly-win-rate">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Profit/Loss</td>
+                                        <td id="monthly-pnl">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // WebSocket connection for real-time updates
+        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            updateDashboard(data);
+        };
+
+        function updateDashboard(data) {
+            // Update performance overview
+            $('#initial-budget').text('$' + data.initial_budget.toFixed(2));
+            $('#current-balance').text('$' + data.current_balance.toFixed(2));
+            $('#total-pnl').text('$' + data.total_pnl.toFixed(2));
+            $('#win-rate').text(data.win_rate.toFixed(2) + '%');
+
+            // Update active trades
+            const activeTrades = $('#active-trades tbody');
+            activeTrades.empty();
+            data.active_trades.forEach(trade => {
+                const row = $('<tr>').addClass('active-trade');
+                row.append($('<td>').text(trade.symbol));
+                row.append($('<td>').text(trade.side));
+                row.append($('<td>').text(trade.entry_price));
+                row.append($('<td>').text(trade.current_price));
+                row.append($('<td>').text(trade.size));
+                row.append($('<td>').text('$' + trade.unrealized_pnl.toFixed(2)));
+                row.append($('<td>').text(trade.time_in_trade));
+                row.append($('<td>').html('<button class="btn btn-sm btn-outline-light">View</button>'));
+                activeTrades.append(row);
+            });
+
+            // Update trade history
+            const tradeHistory = $('#trade-history tbody');
+            tradeHistory.empty();
+            data.trade_history.forEach(trade => {
+                const row = $('<tr>');
+                row.append($('<td>').text(new Date(trade.timestamp).toLocaleString()));
+                row.append($('<td>').text(trade.symbol));
+                row.append($('<td>').text(trade.side));
+                row.append($('<td>').text(trade.entry_price));
+                row.append($('<td>').text(trade.exit_price));
+                row.append($('<td>').text(trade.size));
+                row.append($('<td>').text('$' + trade.pnl.toFixed(2)));
+                row.append($('<td>').text(trade.duration));
+                row.append($('<td>').text(trade.signals.join(', ')));
+                tradeHistory.append(row);
+            });
+
+            // Update performance metrics
+            $('#daily-trades').text(data.daily_stats.trades);
+            $('#daily-win-rate').text(data.daily_stats.win_rate.toFixed(2) + '%');
+            $('#daily-pnl').text('$' + data.daily_stats.pnl.toFixed(2));
+
+            $('#weekly-trades').text(data.weekly_stats.trades);
+            $('#weekly-win-rate').text(data.weekly_stats.win_rate.toFixed(2) + '%');
+            $('#weekly-pnl').text('$' + data.weekly_stats.pnl.toFixed(2));
+
+            $('#monthly-trades').text(data.monthly_stats.trades);
+            $('#monthly-win-rate').text(data.monthly_stats.win_rate.toFixed(2) + '%');
+            $('#monthly-pnl').text('$' + data.monthly_stats.pnl.toFixed(2));
+
+            // Update last update time
+            $('#last-update').text(new Date().toLocaleString());
+        }
+
+        // Load weekly report on page load
+        $(document).ready(function() {
+            loadWeeklyReport();
+            loadPerformanceData();
+        });
+
+        function loadWeeklyReport() {
+            $.get('/api/enhanced_report')
+                .done(function(data) {
+                    displayEnhancedReport(data);
+                })
+                .fail(function() {
+                    $('#weekly-report-content').html('<p class="text-warning">No enhanced report available. Click "Generate New Report" to create one.</p>');
+                });
+        }
+
+        function generateWeeklyReport() {
+            $('#weekly-report-content').html(`
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Generating...</span>
+                    </div>
+                    <p>Generating new weekly report... This may take a few minutes.</p>
+                </div>
+            `);
+            
+            $.get('/api/generate_report')
+                .done(function(data) {
+                    displayEnhancedReport(data);
+                })
+                .fail(function(xhr) {
+                    $('#weekly-report-content').html('<p class="text-danger">Error generating report: ' + xhr.responseJSON.error + '</p>');
+                });
+        }
+
+        function downloadReportPDF() {
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/download_report_pdf';
+            link.download = 'weekly_report.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function generateAndDownloadPDF() {
+            // Show loading message
+            const originalContent = $('#weekly-report-content').html();
+            $('#weekly-report-content').html(`
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Generating...</span>
+                    </div>
+                    <p>Generating new report and creating PDF... This may take a few minutes.</p>
+                </div>
+            `);
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/generate_and_download_pdf';
+            link.download = 'weekly_report.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Restore original content after a delay
+            setTimeout(function() {
+                $('#weekly-report-content').html(originalContent);
+                // Also refresh the report display
+                loadWeeklyReport();
+            }, 5000);
+        }
+
+        function displayEnhancedReport(report) {
+            const content = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>Market Overview & Feedback</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Fear & Greed Index:</strong> ${report.market_overview.fear_greed_index}/100</p>
+                                <p><strong>Bitcoin Dominance:</strong> ${report.market_overview.bitcoin_dominance.toFixed(1)}%</p>
+                                <p><strong>Sentiment:</strong> ${report.market_overview.market_sentiment}</p>
+                                <hr>
+                                <p><strong>Analyzed:</strong> ${report.market_overview.total_analyzed} coins</p>
+                                <p><strong>Day Trading Ops:</strong> ${report.market_overview.day_trading_opportunities}</p>
+                                <p><strong>Long-term Ops:</strong> ${report.market_overview.long_term_opportunities}</p>
+                                ${report.feedback_analysis.total_predictions > 0 ? `
+                                <hr>
+                                <p><strong>Past Predictions:</strong> ${report.feedback_analysis.total_predictions}</p>
+                                ${Object.keys(report.feedback_analysis.accuracy_by_timeframe || {}).map(tf => 
+                                    `<small>${tf}: ${report.feedback_analysis.accuracy_by_timeframe[tf].average_accuracy.toFixed(1)}% accuracy</small><br>`
+                                ).join('')}
+                                ` : ''}
+                                <p><small class="text-muted">Generated: ${new Date(report.report_date).toLocaleString()}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>⚡ Day Trading Opportunities (1-3 days)</h6>
+                            </div>
+                            <div class="card-body">
+                                ${report.day_trading.buy_recommendations.length > 0 ? 
+                                    report.day_trading.buy_recommendations.map((rec, i) => `
+                                        <div class="border-bottom pb-2 mb-2">
+                                            <h6>${i + 1}. ${rec.symbol} - ${rec.signals.confidence.toFixed(0)}% Confidence</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <small>
+                                                        <strong>Entry:</strong> $${rec.signals.entry_price.toFixed(4)}<br>
+                                                        <strong>Stop Loss:</strong> $${rec.signals.stop_loss.toFixed(4)}<br>
+                                                        <strong>Risk:</strong> ${rec.signals.risk_level}
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <small>
+                                                        <strong>Targets:</strong> $${rec.signals.take_profit.map(tp => tp.toFixed(4)).join(', $')}<br>
+                                                        <strong>1d Prediction:</strong> ${(rec.predictions.target_1d * 100).toFixed(1)}%<br>
+                                                        <strong>Timeframe:</strong> ${rec.signals.timeframe}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${rec.signals.reasoning.slice(0, 2).join(', ')}</small>
+                                        </div>
+                                    `).join('') 
+                                : '<p class="text-muted">No day trading opportunities found</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>📈 Long-term Opportunities (1-4 weeks)</h6>
+                            </div>
+                            <div class="card-body">
+                                ${report.long_term.buy_recommendations.length > 0 ? 
+                                    report.long_term.buy_recommendations.map((rec, i) => `
+                                        <div class="border-bottom pb-2 mb-2">
+                                            <h6>${i + 1}. ${rec.symbol} - ${rec.signals.confidence.toFixed(0)}% Confidence</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <small>
+                                                        <strong>Entry:</strong> $${rec.signals.entry_price.toFixed(4)}<br>
+                                                        <strong>Stop Loss:</strong> $${rec.signals.stop_loss.toFixed(4)}<br>
+                                                        <strong>Risk:</strong> ${rec.signals.risk_level}
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <small>
+                                                        <strong>Targets:</strong> $${rec.signals.take_profit.map(tp => tp.toFixed(4)).join(', $')}<br>
+                                                        <strong>7d Prediction:</strong> ${(rec.predictions.target_7d * 100).toFixed(1)}%<br>
+                                                        <strong>Timeframe:</strong> ${rec.signals.timeframe}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${rec.signals.reasoning.slice(0, 2).join(', ')}</small>
+                                        </div>
+                                    `).join('')
+                                : '<p class="text-muted">No long-term opportunities found</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${(report.day_trading.sell_recommendations.length > 0 || report.long_term.sell_recommendations.length > 0) ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>🔴 Sell Warnings</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    ${report.day_trading.sell_recommendations.length > 0 ? `
+                                    <div class="col-md-6">
+                                        <h6>Day Trading Sells</h6>
+                                        ${report.day_trading.sell_recommendations.map((rec, i) => `
+                                            <div class="border-bottom pb-1 mb-1">
+                                                <strong>${rec.symbol}</strong> - ${rec.signals.confidence.toFixed(0)}%
+                                                <br><small class="text-muted">${rec.signals.reasoning.slice(0, 1).join('')}</small>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    ` : ''}
+                                    ${report.long_term.sell_recommendations.length > 0 ? `
+                                    <div class="col-md-6">
+                                        <h6>Long-term Sells</h6>
+                                        ${report.long_term.sell_recommendations.map((rec, i) => `
+                                            <div class="border-bottom pb-1 mb-1">
+                                                <strong>${rec.symbol}</strong> - ${rec.signals.confidence.toFixed(0)}%
+                                                <br><small class="text-muted">${rec.signals.reasoning.slice(0, 1).join('')}</small>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>📋 Watchlist & Executive Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Top Watchlist</h6>
+                                        ${report.watchlist.slice(0, 8).map(rec => `
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>${rec.symbol}</span>
+                                                <span>$${rec.current_price.toFixed(4)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Key Insights</h6>
+                                        ${report.summary.map(point => `<small>• ${point}</small><br>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                `;
+            
+            $('#weekly-report-content').html(content);
+        }
+
+        function displayWeeklyReport(report) {
+            const content = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>Market Overview</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Fear & Greed Index:</strong> ${report.market_overview.fear_greed_index}/100</p>
+                                <p><strong>Bitcoin Dominance:</strong> ${report.market_overview.bitcoin_dominance.toFixed(1)}%</p>
+                                <p><strong>Sentiment:</strong> ${report.market_overview.market_sentiment}</p>
+                                <hr>
+                                <p><strong>Analyzed:</strong> ${report.market_overview.total_analyzed} coins</p>
+                                <p><strong>High-confidence BUYs:</strong> ${report.market_overview.high_confidence_buys}</p>
+                                <p><strong>High-confidence SELLs:</strong> ${report.market_overview.high_confidence_sells}</p>
+                                <p><small class="text-muted">Generated: ${new Date(report.report_date).toLocaleString()}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>🟢 Top Buy Recommendations</h6>
+                            </div>
+                            <div class="card-body">
+                                ${report.top_buy_recommendations.map((rec, i) => `
+                                    <div class="border-bottom pb-2 mb-2">
+                                        <h6>${i + 1}. ${rec.symbol} - ${rec.signals.confidence.toFixed(0)}% Confidence</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small>
+                                                    <strong>Entry:</strong> $${rec.signals.entry_price.toFixed(4)}<br>
+                                                    <strong>Stop Loss:</strong> $${rec.signals.stop_loss.toFixed(4)}<br>
+                                                    <strong>Take Profit:</strong> $${rec.signals.take_profit.map(tp => tp.toFixed(4)).join(', $')}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small>
+                                                    <strong>ML Predictions:</strong><br>
+                                                    1d: ${(rec.predictions.target_1d * 100).toFixed(1)}%<br>
+                                                    7d: ${(rec.predictions.target_7d * 100).toFixed(1)}%
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">${rec.signals.reasoning.slice(0, 2).join(', ')}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${report.top_sell_recommendations.length > 0 ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>🔴 Sell Recommendations</h6>
+                            </div>
+                            <div class="card-body">
+                                ${report.top_sell_recommendations.map((rec, i) => `
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-1">
+                                        <div>
+                                            <strong>${rec.symbol}</strong> - ${rec.signals.confidence.toFixed(0)}% confidence
+                                            <br><small class="text-muted">${rec.signals.reasoning.slice(0, 1).join('')}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small>$${rec.current_price.toFixed(4)}</small>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <h6>📋 Watchlist (Hold)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    ${report.watchlist.slice(0, 12).map(rec => `
+                                        <div class="col-md-4 mb-2">
+                                            <div class="d-flex justify-content-between">
+                                                <span>${rec.symbol}</span>
+                                                <span>$${rec.current_price.toFixed(4)}</span>
+                                            </div>
+                                            <small class="text-muted">${rec.technical_analysis.trend}</small>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                `;
+            
+            $('#weekly-report-content').html(content);
+        }
+
+        // Initialize charts
+        const dailyPnlChart = new Chart(document.getElementById('daily-pnl-chart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Daily P/L',
+                    data: [],
+                    borderColor: '#00ff00',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#3d3d3d'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#3d3d3d'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                }
+            }
+        });
+
+        const coinPnlChart = new Chart(document.getElementById('coin-pnl-chart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Profit by Coin',
+                    data: [],
+                    backgroundColor: '#00ff00'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#3d3d3d'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#3d3d3d'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Add new function to load performance data via HTTP
+        function loadPerformanceData() {
+            $.get('/api/performance')
+                .done(function(data) {
+                    updateDashboard(data);
+                })
+                .fail(function(xhr) {
+                    console.error('Failed to load performance data:', xhr);
+                });
+        }
+
+        // Also add periodic refresh in case WebSocket fails
+        setInterval(loadPerformanceData, 10000); // Refresh every 10 seconds
+    </script>
+</body>
+</html> 

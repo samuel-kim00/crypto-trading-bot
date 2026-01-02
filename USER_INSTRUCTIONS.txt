@@ -1,0 +1,90 @@
+# Trading Bot Health & Learning Check Instructions
+
+This guide will help you verify that your trading bot is:
+- Gathering info from all APIs
+- Learning and updating strategies
+- Running properly
+
+---
+
+## 1. Is the bot gathering info from all APIs?
+
+**How to check:**
+- Open `trading_bot.log` and look for entries like:
+  - Fetched market data for [symbol]
+  - Fetched Reddit sentiment
+  - Fetched YouTube analysis
+  - Fetched news articles
+  - Fetched CryptoCompare signals
+- Check for errors or warnings about API failures.
+
+**What to do:**
+- Open a terminal and run:
+  ```sh
+  tail -n 50 trading_bot.log
+  ```
+- If you see errors like "API key missing" or "Failed to fetch...", check your `.env` file and API quotas.
+
+---
+
+## 2. Is the bot learning and updating strategies?
+
+**How to check:**
+- Look for log entries like:
+  - Model training completed
+  - Training accuracy: ...
+  - Testing accuracy: ...
+  - Loaded existing trading model
+- Strategy parameters should update in response to new sentiment/volatility/news.
+
+**What to do:**
+- Search the log for "training", "accuracy", or "Loaded existing trading model".
+- Check if strategy parameters change after major news or sentiment shifts.
+
+---
+
+## 3. Is the bot running properly?
+
+**How to check:**
+- The log should show a continuous loop of:
+  - Checking positions
+  - Fetching new data
+  - Making trading decisions
+  - Executing trades (simulated or real)
+- No repeated errors or crashes in the log.
+- The dashboard (if running) should update with new trades, balances, and performance stats.
+
+**What to do:**
+- Tail the log file:
+  ```sh
+  tail -n 50 trading_bot.log
+  ```
+- Check the dashboard at http://127.0.0.1:5000 for live updates.
+
+---
+
+## 4. Quick Diagnostic Command
+
+- To quickly check the last 50 lines of your log file, run:
+  ```sh
+  tail -n 50 trading_bot.log
+  ```
+- Review for errors, API usage, and model training status.
+
+---
+
+## 5. If you need help
+- If you see repeated errors, missing API data, or the bot is not learning, review your `.env` and config files.
+- Ask for help with specific error messages or log entries.
+
+---
+
+## 6. How to Check if the Bot is Running
+
+### a) Check Running Processes
+Run this in your terminal:
+```sh
+ps aux | grep trading_bot.py | grep -v grep
+ps aux | grep scheduler.py | grep -v grep
+```
+If you see a line with `python trading_bot.py`

@@ -1,0 +1,20 @@
+{
+    "trading_hours": {
+        "start": "00:00",
+        "end": "23:59"
+    },
+    "trading_days": [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+    ],
+    "maintenance_window": {
+        "day": "sunday",
+        "start": "23:00",
+        "end": "23:30"
+    }
+} 

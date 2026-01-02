@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/*.log
+!logs/.gitkeep
+
+# Data files
+data/*.json
+!data/.gitkeep
+!data/market_intelligence.json.example
+
+# Models
+models/*.h5
+models/*.pkl
+models/*.joblib
+
+# Reports (keep structure but ignore generated reports)
+src/analysis/reports/*.json
+src/analysis/reports/*.pdf
+!src/analysis/reports/.gitkeep
+
+# Config files with sensitive data
+config/active_positions.json
+config/strategy_status.json
+*.service
+
+# Note: config/strategy_config.json is tracked (contains strategy params only, no API keys)
+# Use config/strategy_config.json.example as template
+
+# Trading data
+trading_bot_heartbeat.json
+active_positions.json
+strategy_status.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
