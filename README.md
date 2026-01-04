@@ -28,26 +28,27 @@ A high-performance cryptocurrency trading bot with ultra-aggressive scalping str
 ## 📁 Project Structure
 
 ```
-├── src/
-│   ├── core/
+├── src/                          # Source code
+│   ├── core/                     # Core trading functionality
 │   │   ├── trading_bot_simple.py    # Main ultra-fast trading bot
 │   │   ├── trading_bot.py           # Full-featured bot with AI
 │   │   └── trading_bot_lite.py     # Lightweight monitoring bot
-│   ├── dashboard/
+│   ├── dashboard/                # Web dashboard
 │   │   ├── app.py                  # Flask web dashboard
 │   │   └── templates/              # HTML templates
-│   ├── analysis/
+│   ├── analysis/                 # Analysis and ML
 │   │   ├── auto_discovery_backtester_fixed.py
 │   │   ├── enhanced_predictor.py
 │   │   └── self_learning_integration.py
-│   └── utils/
+│   └── utils/                    # Utilities
 │       └── pdf_generator.py
-├── config/
+├── config/                       # Configuration files
 │   └── strategy_config.json        # Trading strategy configuration
-├── logs/
-│   └── trading_bot_heartbeat.json   # Real-time bot status
-├── requirements.txt
-└── README.md
+├── scripts/                      # Utility scripts
+├── docs/                         # Documentation
+├── tests/                        # Test files
+├── requirements.txt              # Python dependencies
+└── README.md                     # This file
 ```
 
 ## 🛠️ Installation
