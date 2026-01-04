@@ -1318,7 +1318,7 @@ def run_dashboard():
             
             if result != 0:  # Port is available
                 logging.info(f"Starting dashboard server on http://localhost:{port}")
-                socketio.run(app, host='0.0.0.0', port=port, debug=False, use_reloader=False)
+                socketio.run(app, host='0.0.0.0', port=port, debug=False, use_reloader=False, allow_unsafe_werkzeug=True)
                 return
             else:
                 logging.warning(f"Port {port} is in use, trying next port...")
