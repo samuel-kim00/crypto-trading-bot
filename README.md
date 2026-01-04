@@ -28,28 +28,69 @@ A high-performance cryptocurrency trading bot with ultra-aggressive scalping str
 ## 📁 Project Structure
 
 ```
-├── src/                          # Source code
-│   ├── core/                     # Core trading functionality
-│   │   ├── trading_bot_simple.py    # Main ultra-fast trading bot
-│   │   ├── trading_bot.py           # Full-featured bot with AI
+├── src/                              # Source code
+│   ├── core/                         # Core trading functionality
+│   │   ├── trading_bot_simple.py    # ⭐ Main ultra-fast trading bot
+│   │   ├── trading_bot.py           # Full-featured bot with AI integration
 │   │   └── trading_bot_lite.py     # Lightweight monitoring bot
-│   ├── dashboard/                # Web dashboard
-│   │   ├── app.py                  # Flask web dashboard
-│   │   └── templates/              # HTML templates
-│   ├── analysis/                 # Analysis and ML
+│   ├── dashboard/                    # Web dashboard
+│   │   ├── app.py                    # Flask web application
+│   │   ├── templates/                # HTML templates
+│   │   │   ├── index.html
+│   │   │   ├── backtest.html
+│   │   │   └── ai_training.html
+│   │   └── src/                      # Dashboard assets
+│   ├── analysis/                     # Analysis and ML modules
 │   │   ├── auto_discovery_backtester_fixed.py
-│   │   ├── enhanced_predictor.py
-│   │   └── self_learning_integration.py
-│   └── utils/                    # Utilities
-│       └── pdf_generator.py
-├── config/                       # Configuration files
-│   └── strategy_config.json        # Trading strategy configuration
-├── scripts/                      # Utility scripts
-├── docs/                         # Documentation
-├── tests/                        # Test files
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
+│   │   ├── enhanced_predictor.py    # ML predictions
+│   │   ├── self_learning_integration.py
+│   │   ├── performance_tracker.py   # Performance analytics
+│   │   ├── media_analyzer_v2.py     # Sentiment analysis
+│   │   ├── youtube_scraper.py       # Social sentiment
+│   │   └── backtester.py            # Strategy backtesting
+│   └── utils/                        # Utility functions
+│       ├── pdf_generator.py          # PDF report generation
+│       ├── run_bots.py               # Bot runner utilities
+│       └── test_connection.py        # Connection testing
+├── config/                            # Configuration files
+│   ├── strategy_config.json          # Trading strategy configuration
+│   ├── strategy_config.json.example  # Configuration template
+│   └── *.json                        # Additional config files
+├── scripts/                           # Utility scripts
+│   ├── monitor.py                    # Monitoring scripts
+│   ├── optimize_parameters.py        # Parameter optimization
+│   ├── scheduler.py                  # Task scheduler
+│   └── *.py                          # Additional utility scripts
+├── docs/                              # Documentation
+│   ├── README.md                     # Documentation index
+│   ├── PROJECT_STRUCTURE.md          # Detailed project structure
+│   ├── GITHUB_SETUP.md               # GitHub setup guide
+│   └── *.md                          # Additional documentation
+├── tests/                             # Test files
+│   ├── test_system.py                # System tests
+│   ├── test_backtest.py              # Backtest tests
+│   └── test_adaptive_backtest.py     # Adaptive backtest tests
+├── requirements.txt                   # Python dependencies
+└── README.md                          # This file
+
+# Local directories (not in repository, generated at runtime)
+├── data/                              # Trading data (excluded from git)
+├── logs/                              # Application logs (excluded from git)
+├── reports/                           # Generated reports (excluded from git)
+├── models/                            # ML models (excluded from git)
+└── venv/                              # Virtual environment (excluded from git)
 ```
+
+### 📂 Key Directories
+
+- **`src/core/`** - Main trading bot implementations
+  - `trading_bot_simple.py` is the recommended ultra-fast scalping bot
+- **`src/dashboard/`** - Web-based monitoring dashboard
+- **`src/analysis/`** - Machine learning and analysis modules
+- **`config/`** - Strategy and system configuration files
+- **`scripts/`** - Utility scripts for monitoring, optimization, and testing
+- **`docs/`** - Project documentation and guides
+- **`tests/`** - Unit and integration tests
 
 ## 🛠️ Installation
 
