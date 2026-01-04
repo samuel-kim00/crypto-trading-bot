@@ -40,26 +40,23 @@ ENV/
 .env.local
 .env.*.local
 *.env
+config.py
+secrets.*
 
-# Logs
+# Logs - 전체 폴더 제외
+logs/
 *.log
-logs/*.log
-!logs/.gitkeep
 
-# Data files
-data/*.json
-!data/.gitkeep
-!data/market_intelligence.json.example
+# Data - 전체 폴더 제외
+data/
 
-# Models
-models/*.h5
-models/*.pkl
-models/*.joblib
-
-# Reports (keep structure but ignore generated reports)
-src/analysis/reports/*.json
-src/analysis/reports/*.pdf
+# Reports - 전체 폴더 제외 (루트 및 analysis 내부 모두)
+reports/
+src/analysis/reports/
 !src/analysis/reports/.gitkeep
+
+# Models - 전체 폴더 제외
+models/
 
 # Config files with sensitive data
 config/active_positions.json
@@ -98,4 +95,3 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
