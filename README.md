@@ -1,5 +1,7 @@
 # Cryptocurrency Trading Bot (Python)
 
+![Dashboard](docs/images/dashboard.png)
+
 ## Overview
 A personal Python project focused on designing an automated trading system
 with an emphasis on system architecture, data flow, and monitoring.
@@ -8,6 +10,8 @@ Rather than optimizing for profitability, this project explores how trading
 logic can be structured, updated, and observed in a reliable and extensible way.
 The system is built to initialize strategies from historical indicators and
 iteratively adjust parameters as new data becomes available.
+
+> Default usage is intended for simulated/local testing; live trading (if enabled) is optional.
 
 ---
 
@@ -105,6 +109,7 @@ http://localhost:8081
 ## Safety Notes
 - API keys and credentials must not be committed to this repository
 - Sensitive information should be managed using environment variables or `.env` files
+  - See `.env.example` for a template configuration file
 - Simulated or limited testing modes are recommended
 - This project prioritizes system design and experimentation over financial outcomes
 
